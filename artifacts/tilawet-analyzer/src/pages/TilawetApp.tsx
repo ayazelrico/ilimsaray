@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Mic, Square, RefreshCw, Settings, ChevronRight } from "lucide-react";
+import { Mic, Square, RefreshCw, ChevronRight } from "lucide-react";
 import ilimsarayLogo from "@assets/ilimsaray_1775908969299.png";
 import { WaveformVisualizer } from "@/components/WaveformVisualizer";
 import { ScoreCircle } from "@/components/ScoreCircle";
@@ -10,12 +10,7 @@ import { transcribeAudio, analyzeRecitation, AnalysisResult } from "@/lib/openai
 
 type AppState = "landing" | "recording" | "analyzing" | "results";
 
-interface TilawetAppProps {
-  apiKey: string;
-  onRequestApiKey: () => void;
-}
-
-export function TilawetApp({ apiKey, onRequestApiKey }: TilawetAppProps) {
+export function TilawetApp() {
   const [appState, setAppState] = useState<AppState>("landing");
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -55,10 +50,6 @@ export function TilawetApp({ apiKey, onRequestApiKey }: TilawetAppProps) {
   };
 
   const handleStartRecording = async () => {
-    if (!apiKey) {
-      onRequestApiKey();
-      return;
-    }
     setAppState("recording");
     await startRecording();
   };
@@ -77,10 +68,10 @@ export function TilawetApp({ apiKey, onRequestApiKey }: TilawetAppProps) {
   const runAnalysis = async (blob: Blob) => {
     try {
       setAnalysisStep("transcribing");
-      const transcribed = await transcribeAudio(blob, apiKey);
+      const transcribed = await transcribeAudio(blob);
 
       setAnalysisStep("analyzing");
-      const result = await analyzeRecitation(transcribed, apiKey);
+      const result = await analyzeRecitation(transcribed);
 
       setAnalysisResult(result);
       setAppState("results");
@@ -144,20 +135,10 @@ export function TilawetApp({ apiKey, onRequestApiKey }: TilawetAppProps) {
           data-testid="link-ilimsaray-home">
           <img src={ilimsarayLogo} alt="ilimsaray" className="h-7 w-auto brightness-100 invert" />
         </a>
-        <div className="flex items-center gap-2">
-          <span className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#CCFF00]/8 border border-[#CCFF00]/20 text-[#CCFF00] text-xs font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
-            AI Destekli
-          </span>
-          <button
-            onClick={onRequestApiKey}
-            className="p-2 rounded-lg bg-white/5 hover:bg-white/8 text-white/40 hover:text-white/70 transition-colors"
-            title="API Anahtarını Değiştir"
-            data-testid="button-settings"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-        </div>
+        <span className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#CCFF00]/8 border border-[#CCFF00]/20 text-[#CCFF00] text-xs font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
+          AI Destekli
+        </span>
       </header>
 
       <main className="relative z-10 flex flex-col items-center min-h-[calc(100vh-73px)]">
