@@ -1,0 +1,129 @@
+Build a single-page web application called "Tilawet Analizör" for ilimsaray.com. This is a real-time AI-powered Quran recitation (tilawet) analysis tool. No login or registration required — users can use it immediately.
+
+---
+
+TECH STACK:
+- Frontend: HTML, CSS (vanilla or Tailwind), vanilla JavaScript
+- Backend: Node.js + Express (or a single serverless function)
+- AI: OpenAI API (Whisper for transcription + GPT-4o for analysis)
+- Audio: MediaRecorder API (in-browser recording)
+- No database needed — stateless, per-session usage
+
+---
+
+OPENAI INTEGRATION:
+- Use the user-provided OpenAI API key (input field on the page, stored only in sessionStorage — never sent to a server except for the API call itself)
+- Use Whisper (whisper-1) to transcribe the recorded Arabic audio
+- Use GPT-4o to analyze the recitation based on scoring criteria
+- Pass the transcribed Arabic text and audio context to GPT-4o for evaluation
+
+---
+
+SCORING SYSTEM (100 points total):
+GPT-4o must evaluate the recitation on exactly these 5 criteria:
+
+1. Taban puan (Base score) — 50 points
+   Measures: general correctness of the recitation, completeness, no major errors
+
+2. Tecvid ve mahreç (Tajweed & articulation) — 15 points
+   Measures: proper tajweed rules application, correct makhraj (articulation points of letters)
+
+3. Yüzünden doğru okuma (Reading from text accurately) — 15 points
+   Measures: accuracy of reading the words correctly as they appear in the Quran
+
+4. Makam (Melodic tone/maqam) — 15 points
+   Measures: proper use of traditional Quranic melodic modes (maqamat)
+
+5. Ses (Voice quality) — 5 points
+   Measures: clarity, projection, and quality of voice
+
+The GPT-4o system prompt should instruct it to respond ONLY in JSON format:
+{
+  "scores": {
+    "taban_puan": <0-50>,
+    "tecvid_ve_mahrec": <0-15>,
+    "yuzunden_dogru_okuma": <0-15>,
+    "makam": <0-15>,
+    "ses": <0-5>
+  },
+  "total": <0-100>,
+  "feedback": {
+    "taban_puan": "",
+    "tecvid_ve_mahrec": "",
+    "yuzunden_dogru_okuma": "",
+    "makam": "",
+    "ses": ""
+  },
+  "genel_yorum": "",
+  "transcribed_text": ""
+}
+
+---
+
+UI / UX DESIGN:
+- Dark theme: deep black/dark navy background (#0a0a0f or similar)
+- Accent color: neon lime-green (#CCFF00 or #B8FF00) — same as ilimsaray brand
+- Typography: clean sans-serif (Inter or system-ui)
+- Professional, minimal, cool aesthetic — NO generic looking UI
+
+LANDING SECTION (above the fold):
+- ilimsaray logo/wordmark (text-based, styled) top left
+- Centered hero: large title "Tilawet Analizör", subtitle "Yapay zeka ile Kuran tilavetinizi analiz edin"
+- A glowing animated microphone icon/button as CTA
+- Subtle animated background (CSS only — e.g. slow radial pulse, no heavy JS animations)
+
+RECORDER SECTION:
+- Large animated record button with pulse effect when recording
+- Recording timer display (00:00 format)
+- Waveform visualization using Canvas API (animated bars reacting to mic input)
+- Stop & Analyze button appears after recording starts
+- Status messages: "Kaydediliyor...", "Analiz ediliyor...", "Sonuçlar hazır!"
+
+RESULTS SECTION (appears as a cool popup/slide-up panel after analysis):
+- Animated score reveal: each criterion animates from 0 to its score (counting up)
+- Large circular total score display (e.g. 87/100) with color coding:
+  - 80-100: green
+  - 60-79: yellow/amber  
+  - below 60: red
+- Score cards for each of the 5 criteria with icons:
+  📖 Taban puan / ⭐ Tecvid ve mahreç / 👁 Yüzünden doğru okuma / 🎵 Makam / 🔊 Ses
+- Progress bars for each score (animated fill)
+- Feedback accordion: click each criterion to expand detailed Turkish feedback
+- "Genel Yorum" section at the bottom
+- "Tekrar Kaydet" button to reset and record again
+
+API KEY MODAL:
+- On first load, show a sleek modal asking for OpenAI API key
+- Explain: "API anahtarınız yalnızca tarayıcınızda saklanır, sunucuya gönderilmez."
+- Store in sessionStorage
+- Show a small lock icon + "Güvenli" badge for trust
+
+---
+
+MICRO-INTERACTIONS & POLISH:
+- Smooth fade/slide transitions between sections
+- Loading spinner with custom animation during API call
+- Typewriter effect for "genel_yorum" text reveal
+- Error handling: show friendly Turkish error messages in a toast notification
+- Mobile responsive — works on phone (users may record on mobile)
+
+---
+
+FILE STRUCTURE:
+/
+├── index.html
+├── style.css
+├── app.js
+└── server.js (Express — proxies OpenAI calls so API key stays safe)
+
+OR alternatively: a single index.html with embedded CSS+JS that calls OpenAI directly from the browser (simpler, since the API key is user-provided anyway).
+
+---
+
+IMPORTANT NOTES:
+- All UI text in Turkish
+- GPT-4o feedback must be in Turkish
+- Handle errors gracefully: microphone permission denied, API key invalid, network error
+- Max recording time: 3 minutes (auto-stop)
+- Audio format: webm or mp3, whatever Whisper accepts
+- The app name "Tilawet Analizör" and brand "ilimsaray" should appear prominently

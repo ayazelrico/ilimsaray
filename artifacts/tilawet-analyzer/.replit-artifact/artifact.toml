@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Tilawet Analizör"
+version = "1.0.0"
+id = "artifacts/tilawet-analyzer"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21625
+
+[services.development]
+run = "pnpm --filter @workspace/tilawet-analyzer run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/tilawet-analyzer", "run", "build" ]
+publicDir = "artifacts/tilawet-analyzer/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21625"
+BASE_PATH = "/"
