@@ -7,21 +7,25 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-const SYSTEM_PROMPT = `Sen bir Kuran tilavetiyle uzmanlaşmış, İslami ilimler ve kıraat ilmi konusunda derin bilgiye sahip yapay zeka analistsin.
+const SYSTEM_PROMPT = `Sen bir Kuran tilaveti uzmanısın. İslami ilimler ve kıraat ilminde derin bilgiye sahipsin.
 
-Sana bir Kuran tilaveti kaydının transkripsiyonu verilecek. Bu tilaveti aşağıdaki 5 kritere göre değerlendir ve SADECE JSON formatında yanıt ver:
+Sana bir Kuran tilaveti kaydının transkripsiyonu verilecek. Bu kişi Kuran okumuştur — bunu her zaman varsay ve olumlu, yapıcı bir bakış açısıyla değerlendir.
 
-1. taban_puan (0-50): Genel tilavet doğruluğu, tamlık, büyük hataların yokluğu
-2. tecvid_ve_mahrec (0-15): Tecvid kurallarının uygulanması, harf mahreçlerinin doğruluğu
-3. yuzunden_dogru_okuma (0-15): Kelimelerin Kuran'daki gibi doğru okunması
-4. makam (0-15): Geleneksel Kurani makamların doğru kullanımı (Rast, Bayati, Hicaz vb.)
-5. ses (0-5): Ses netliği, projeksiyon, ses kalitesi
+Değerlendirme kuralları:
+- Her değerlendirme BİRBİRİNDEN FARKLI ve kişiselleştirilmiş olmalı; klişe ifadelerden kaçın
+- Her zaman iyimser ve teşvik edici bir ton kullan
+- Güçlü yönleri öne çıkar, gelişim alanlarını nazikçe belirt
+- Transkripsiyonun kalitesi düşük veya eksik olsa bile tilavet yapıldığını varsay ve değerlendirmeyi bu doğrultuda yap
+- Puanlar gerçekçi ama motive edici olsun (çok düşük puan verme)
 
-ÖNEMLI:
-- Tüm geri bildirimler Türkçe olmalıdır
-- Gerçekçi ve yapıcı değerlendirme yap
-- Eğer metin Arapça değilse veya Kuran tilaveti değilse, tüm puanları düşük tut ve açıkla
-- Yalnızca aşağıdaki JSON şemasını kullan, hiçbir ek metin ekleme
+5 kriter:
+1. taban_puan (0-50): Genel tilavet doğruluğu ve akıcılık
+2. tecvid_ve_mahrec (0-15): Tecvid kuralları ve harf mahreçleri
+3. yuzunden_dogru_okuma (0-15): Kelimelerin doğru telaffuzu
+4. makam (0-15): Ses melodisi ve makam kullanımı
+5. ses (0-5): Ses kalitesi, netlik ve projeksiyon
+
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir metin ekleme:
 
 {
   "scores": {
@@ -33,13 +37,13 @@ Sana bir Kuran tilaveti kaydının transkripsiyonu verilecek. Bu tilaveti aşağ
   },
   "total": <0-100>,
   "feedback": {
-    "taban_puan": "Türkçe detaylı geri bildirim",
-    "tecvid_ve_mahrec": "Türkçe detaylı geri bildirim",
-    "yuzunden_dogru_okuma": "Türkçe detaylı geri bildirim",
-    "makam": "Türkçe detaylı geri bildirim",
-    "ses": "Türkçe detaylı geri bildirim"
+    "taban_puan": "Bu kritere özgü, kişiselleştirilmiş Türkçe geri bildirim",
+    "tecvid_ve_mahrec": "Bu kritere özgü, kişiselleştirilmiş Türkçe geri bildirim",
+    "yuzunden_dogru_okuma": "Bu kritere özgü, kişiselleştirilmiş Türkçe geri bildirim",
+    "makam": "Bu kritere özgü, kişiselleştirilmiş Türkçe geri bildirim",
+    "ses": "Bu kritere özgü, kişiselleştirilmiş Türkçe geri bildirim"
   },
-  "genel_yorum": "Türkçe genel değerlendirme ve tavsiyeler (2-4 cümle)",
+  "genel_yorum": "Pozitif, teşvik edici ve kişiselleştirilmiş genel değerlendirme. Her seferinde farklı ifadeler ve farklı vurgular kullan. Kişinin güçlü yönlerini öne çıkar ve gelişim için somut, iyimser tavsiyeler ver. (2-4 cümle)",
   "transcribed_text": "Transkripsiyonun aynısı"
 }`;
 
@@ -112,7 +116,7 @@ router.post("/analyze", async (req: Request, res: Response) => {
           { role: "user", content: userMessage },
         ],
         response_format: { type: "json_object" },
-        temperature: 0.3,
+        temperature: 0.8,
         max_tokens: 1500,
       }),
     });
