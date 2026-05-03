@@ -174,7 +174,7 @@ export default function Home() {
 
   useEffect(() => {
     setProgress(getAllProgress());
-  }, []);
+  }, [isLoaded, isSignedIn, user?.id]);
 
   const totalCompleted = Object.values(progress).filter((p) => p.completed).length;
   const totalHighScore = Object.values(progress).reduce((sum, p) => sum + (p.highScore ?? 0), 0);
