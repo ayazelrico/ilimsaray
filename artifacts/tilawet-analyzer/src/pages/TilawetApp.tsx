@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Mic, Square, RefreshCw, ChevronRight } from "lucide-react";
-import { useUser, useClerk } from "@clerk/react";
+import { Mic, Square, RefreshCw, ChevronRight, History, X } from "lucide-react";
+import { useUser, useClerk, UserProfile } from "@clerk/react";
 import { useLocation } from "wouter";
 import ilimsarayLogo from "@assets/ilimsaray_1775908969299.png";
 import { WaveformVisualizer } from "@/components/WaveformVisualizer";
@@ -9,12 +9,14 @@ import { ScoreCard } from "@/components/ScoreCard";
 import { ToastContainer, ToastMessage } from "@/components/Toast";
 import { useRecorder } from "@/hooks/useRecorder";
 import { transcribeAudio, analyzeRecitation, AnalysisResult } from "@/lib/openai";
+import { saveToHistory, getHistory, type AnalysisEntry } from "@/lib/historyStore";
 
 function UserMenu() {
   const { user, isSignedIn, isLoaded } = useUser();
   const { signOut } = useClerk();
   const [, navigate] = useLocation();
   const [open, setOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,43 +49,66 @@ function UserMenu() {
     : user.emailAddresses[0]?.emailAddress ?? "";
 
   return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-full border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/8 transition-all"
-      >
-        <div className="w-6 h-6 rounded-full bg-[#CCFF00] flex items-center justify-center text-black text-xs font-bold shrink-0">
-          {user.imageUrl ? (
-            <img src={user.imageUrl} alt={displayName} className="w-6 h-6 rounded-full object-cover" />
-          ) : (
-            initials
-          )}
-        </div>
-        <span className="text-white/80 text-xs font-medium max-w-[120px] truncate hidden sm:block">{displayName}</span>
-        <span className="text-white/30 text-xs">▾</span>
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-white/10 bg-[#111118] shadow-2xl z-50 overflow-hidden animate-fade-in">
-          <div className="px-3 py-2.5 border-b border-white/5">
-            <p className="text-white text-sm font-semibold truncate">{displayName}</p>
-            <p className="text-white/40 text-xs truncate">{user.emailAddresses[0]?.emailAddress}</p>
+    <>
+      <div className="relative" ref={ref}>
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-2 px-2 py-1.5 rounded-full border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/8 transition-all"
+        >
+          <div className="w-6 h-6 rounded-full bg-[#CCFF00] flex items-center justify-center text-black text-xs font-bold shrink-0 overflow-hidden">
+            {user.imageUrl ? (
+              <img src={user.imageUrl} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              initials
+            )}
           </div>
-          <button
-            onClick={() => { setOpen(false); navigate("/"); }}
-            className="w-full text-left px-3 py-2 text-white/70 text-sm hover:bg-white/5 hover:text-white transition-colors"
+          <span className="text-white/80 text-xs font-medium max-w-[120px] truncate hidden sm:block">{displayName}</span>
+          <span className="text-white/30 text-xs">▾</span>
+        </button>
+
+        {open && (
+          <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-white/10 bg-[#111118] shadow-2xl z-50 overflow-hidden">
+            <div className="px-3 py-2.5 border-b border-white/5">
+              <p className="text-white text-sm font-semibold truncate">{displayName}</p>
+              <p className="text-white/40 text-xs truncate">{user.emailAddresses[0]?.emailAddress}</p>
+            </div>
+            <button
+              onClick={() => { setOpen(false); setShowProfile(true); }}
+              className="w-full text-left px-3 py-2 text-white/70 text-sm hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+            >
+              <span>👤</span> Profil
+            </button>
+            <button
+              onClick={() => { setOpen(false); setShowProfile(true); }}
+              className="w-full text-left px-3 py-2 text-white/70 text-sm hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+            >
+              <span>⚙️</span> Ayarlar
+            </button>
+            <div className="border-t border-white/5" />
+            <button
+              onClick={() => { setOpen(false); signOut(); }}
+              className="w-full text-left px-3 py-2 text-white/70 text-sm hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+            >
+              <span>🚪</span> Çıkış Yap
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showProfile && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowProfile(false)}
+        >
+          <div
+            className="max-h-[95dvh] overflow-auto rounded-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            🏠 Ana Sayfa
-          </button>
-          <button
-            onClick={() => { setOpen(false); signOut(); }}
-            className="w-full text-left px-3 py-2 text-white/70 text-sm hover:bg-white/5 hover:text-white transition-colors"
-          >
-            🚪 Çıkış Yap
-          </button>
+            <UserProfile />
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -96,7 +121,11 @@ export function TilawetApp() {
   const [analysisStep, setAnalysisStep] = useState<"transcribing" | "analyzing">("transcribing");
   const [typewriterText, setTypewriterText] = useState("");
   const [typewriterDone, setTypewriterDone] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<AnalysisEntry[]>([]);
   const typewriterRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { isSignedIn, isLoaded } = useUser();
 
   const {
     recordingState,
@@ -155,6 +184,13 @@ export function TilawetApp() {
       setAnalysisResult(result);
       setAppState("results");
       startTypewriter(result.genel_yorum);
+
+      saveToHistory({
+        transcribedText: result.transcribed_text || "",
+        totalScore: result.total,
+        genel_yorum: result.genel_yorum,
+      });
+      setHistory(getHistory());
     } catch (err) {
       const e = err as Error;
       addToast(e.message || "Analiz sırasında bir hata oluştu.", "error");
@@ -185,6 +221,11 @@ export function TilawetApp() {
     setTypewriterText("");
     setTypewriterDone(false);
     if (typewriterRef.current) clearTimeout(typewriterRef.current);
+  };
+
+  const handleOpenHistory = () => {
+    setHistory(getHistory());
+    setShowHistory(true);
   };
 
   const criteriaCards = analysisResult
@@ -219,6 +260,16 @@ export function TilawetApp() {
             <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
             AI Destekli
           </span>
+          {isLoaded && isSignedIn && (
+            <button
+              onClick={handleOpenHistory}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs font-medium transition-all"
+              title="Analiz Geçmişim"
+            >
+              <History className="w-3.5 h-3.5" />
+              <span className="hidden sm:block">Geçmişim</span>
+            </button>
+          )}
           <UserMenu />
         </div>
       </header>
@@ -239,15 +290,72 @@ export function TilawetApp() {
           <AnalyzingSection step={analysisStep} />
         )}
         {appState === "results" && analysisResult && (
-          <ResultsSection
-            result={analysisResult}
-            criteriaCards={criteriaCards}
-            typewriterText={typewriterText}
-            typewriterDone={typewriterDone}
-            onReset={handleReset}
-          />
+          <>
+            <ResultsSection
+              result={analysisResult}
+              criteriaCards={criteriaCards}
+              typewriterText={typewriterText}
+              typewriterDone={typewriterDone}
+              onReset={handleReset}
+            />
+            {isLoaded && !isSignedIn && (
+              <div className="w-full max-w-2xl mx-auto px-4 pb-8">
+                <div className="rounded-xl border border-[#CCFF00]/20 bg-[#CCFF00]/5 p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[#CCFF00] text-sm font-semibold">🔒 Bu analizi kaydetmek ister misiniz?</p>
+                    <p className="text-white/50 text-xs mt-0.5">Giriş yaparak tüm analizlerinizi hesabınıza kaydedin.</p>
+                  </div>
+                  <a
+                    href="/sign-in"
+                    className="shrink-0 px-4 py-2 rounded-lg bg-[#CCFF00] text-black text-xs font-bold hover:bg-[#CCFF00]/90 transition-all"
+                  >
+                    Giriş Yap
+                  </a>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
+
+      {showHistory && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowHistory(false)}>
+          <div
+            className="w-full sm:w-[480px] max-h-[80dvh] bg-[#111118] border border-white/10 rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
+              <h2 className="text-white font-semibold text-base">Analiz Geçmişim</h2>
+              <button onClick={() => setShowHistory(false)} className="text-white/40 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 divide-y divide-white/5">
+              {history.length === 0 ? (
+                <div className="px-5 py-10 text-center text-white/40 text-sm">
+                  Henüz kaydedilmiş analiz yok.<br />
+                  İlk analizini yaptıktan sonra burada görünecek.
+                </div>
+              ) : (
+                history.map((entry) => (
+                  <div key={entry.id} className="px-5 py-4">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-white/40 text-xs">{entry.date}</span>
+                      <span className="text-[#CCFF00] font-bold text-sm">{entry.totalScore}/100</span>
+                    </div>
+                    {entry.transcribedText && (
+                      <p className="text-white/60 text-xs text-right dir-rtl leading-relaxed mb-1.5 line-clamp-1" dir="rtl">
+                        {entry.transcribedText}
+                      </p>
+                    )}
+                    <p className="text-white/50 text-xs leading-relaxed line-clamp-2">{entry.genel_yorum}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer messages={toasts} onDismiss={dismissToast} />
     </div>

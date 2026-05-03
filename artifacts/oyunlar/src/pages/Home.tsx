@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { useUser, useClerk } from "@clerk/react";
+import { useUser, useClerk, UserProfile } from "@clerk/react";
 import { getAllProgress } from "@/lib/progress";
 import { useState, useEffect, useRef } from "react";
 
@@ -8,6 +8,7 @@ function UserMenu() {
   const { signOut } = useClerk();
   const [, navigate] = useLocation();
   const [open, setOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,37 +41,66 @@ function UserMenu() {
     : user.emailAddresses[0]?.emailAddress ?? "";
 
   return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-full border border-border/60 hover:border-[#CCFF00]/30 bg-card hover:bg-[#CCFF00]/5 transition-all"
-      >
-        <div className="w-6 h-6 rounded-full bg-[#CCFF00] flex items-center justify-center text-black text-xs font-bold shrink-0 overflow-hidden">
-          {user.imageUrl ? (
-            <img src={user.imageUrl} alt={displayName} className="w-full h-full object-cover" />
-          ) : (
-            initials
-          )}
-        </div>
-        <span className="text-foreground text-xs font-medium max-w-[100px] truncate hidden sm:block">{displayName}</span>
-        <span className="text-muted-foreground text-xs">▾</span>
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-border/60 bg-card shadow-2xl z-50 overflow-hidden animate-fade-in">
-          <div className="px-3 py-2.5 border-b border-border/40">
-            <p className="text-foreground text-sm font-semibold truncate">{displayName}</p>
-            <p className="text-muted-foreground text-xs truncate">{user.emailAddresses[0]?.emailAddress}</p>
+    <>
+      <div className="relative" ref={ref}>
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-2 px-2 py-1.5 rounded-full border border-border/60 hover:border-[#CCFF00]/30 bg-card hover:bg-[#CCFF00]/5 transition-all"
+        >
+          <div className="w-6 h-6 rounded-full bg-[#CCFF00] flex items-center justify-center text-black text-xs font-bold shrink-0 overflow-hidden">
+            {user.imageUrl ? (
+              <img src={user.imageUrl} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              initials
+            )}
           </div>
-          <button
-            onClick={() => { setOpen(false); signOut(); }}
-            className="w-full text-left px-3 py-2 text-muted-foreground text-sm hover:bg-[#CCFF00]/5 hover:text-foreground transition-colors"
+          <span className="text-foreground text-xs font-medium max-w-[100px] truncate hidden sm:block">{displayName}</span>
+          <span className="text-muted-foreground text-xs">▾</span>
+        </button>
+
+        {open && (
+          <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-border/60 bg-card shadow-2xl z-50 overflow-hidden">
+            <div className="px-3 py-2.5 border-b border-border/40">
+              <p className="text-foreground text-sm font-semibold truncate">{displayName}</p>
+              <p className="text-muted-foreground text-xs truncate">{user.emailAddresses[0]?.emailAddress}</p>
+            </div>
+            <button
+              onClick={() => { setOpen(false); setShowProfile(true); }}
+              className="w-full text-left px-3 py-2 text-muted-foreground text-sm hover:bg-[#CCFF00]/5 hover:text-foreground transition-colors flex items-center gap-2"
+            >
+              <span>👤</span> Profil
+            </button>
+            <button
+              onClick={() => { setOpen(false); setShowProfile(true); }}
+              className="w-full text-left px-3 py-2 text-muted-foreground text-sm hover:bg-[#CCFF00]/5 hover:text-foreground transition-colors flex items-center gap-2"
+            >
+              <span>⚙️</span> Ayarlar
+            </button>
+            <div className="border-t border-border/40" />
+            <button
+              onClick={() => { setOpen(false); signOut(); }}
+              className="w-full text-left px-3 py-2 text-muted-foreground text-sm hover:bg-[#CCFF00]/5 hover:text-foreground transition-colors flex items-center gap-2"
+            >
+              <span>🚪</span> Çıkış Yap
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showProfile && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowProfile(false)}
+        >
+          <div
+            className="max-h-[95dvh] overflow-auto rounded-2xl"
+            onClick={(e) => e.stopPropagation()}
           >
-            🚪 Çıkış Yap
-          </button>
+            <UserProfile />
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -140,12 +170,18 @@ const games = [
 export default function Home() {
   const [, navigate] = useLocation();
   const [progress, setProgress] = useState(getAllProgress());
+  const { isSignedIn, isLoaded, user } = useUser();
 
   useEffect(() => {
     setProgress(getAllProgress());
   }, []);
 
   const totalCompleted = Object.values(progress).filter((p) => p.completed).length;
+  const totalHighScore = Object.values(progress).reduce((sum, p) => sum + (p.highScore ?? 0), 0);
+
+  const displayName = user?.firstName
+    ? `${user.firstName}${user.lastName ? " " + user.lastName : ""}`
+    : user?.emailAddresses[0]?.emailAddress ?? "";
 
   return (
     <div className="min-h-screen bg-background">
@@ -253,7 +289,53 @@ export default function Home() {
           })}
         </div>
 
-        <div className="mt-12 grid grid-cols-3 gap-4 text-center">
+        {isLoaded && isSignedIn && totalCompleted > 0 && (
+          <div className="mt-10 rounded-2xl border border-[#CCFF00]/20 bg-[#CCFF00]/5 p-5 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-foreground font-semibold text-base">
+                  Hoş geldin, {displayName || "oyuncu"}! 🎉
+                </h3>
+                <p className="text-muted-foreground text-sm mt-0.5">
+                  Hesabına bağlı ilerleme durumun:
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-[#CCFF00] font-black text-2xl">{totalCompleted}/5</div>
+                <div className="text-muted-foreground text-xs">oyun tamamlandı</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-card border border-border/60 p-3 text-center">
+                <div className="text-[#CCFF00] font-bold text-lg">{totalHighScore}</div>
+                <div className="text-muted-foreground text-xs mt-0.5">Toplam Puan</div>
+              </div>
+              <div className="rounded-xl bg-card border border-border/60 p-3 text-center">
+                <div className="text-[#CCFF00] font-bold text-lg">{5 - totalCompleted}</div>
+                <div className="text-muted-foreground text-xs mt-0.5">Kalan Oyun</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isLoaded && !isSignedIn && (
+          <div className="mt-10 rounded-2xl border border-border/60 bg-card p-5 flex items-center justify-between gap-4 animate-fade-in">
+            <div>
+              <p className="text-foreground font-semibold text-sm">🔒 İlerlemenizi hesabınıza kaydedin</p>
+              <p className="text-muted-foreground text-xs mt-0.5">
+                Giriş yaparak puanlarınız ve rozetleriniz cihazlar arası senkronize edilsin.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/sign-in")}
+              className="shrink-0 px-4 py-2 rounded-lg bg-[#CCFF00] text-black text-xs font-bold hover:bg-[#CCFF00]/90 transition-all"
+            >
+              Giriş Yap
+            </button>
+          </div>
+        )}
+
+        <div className="mt-10 grid grid-cols-3 gap-4 text-center">
           {[
             { label: "Oyun", value: "5" },
             { label: "Soru & Görev", value: "100+" },

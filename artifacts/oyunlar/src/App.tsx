@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ClerkProvider, SignIn, SignUp, useClerk } from "@clerk/react";
+import { setCurrentUserId } from "@/lib/progress";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { Switch, Route, useLocation, Router as WouterRouter } from "wouter";
@@ -95,7 +96,7 @@ function SignUpPage() {
   );
 }
 
-function ClerkQueryClientCacheInvalidator() {
+function ClerkStateSync() {
   const { addListener } = useClerk();
   const qc = useQueryClient();
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
@@ -103,6 +104,7 @@ function ClerkQueryClientCacheInvalidator() {
   useEffect(() => {
     const unsubscribe = addListener(({ user }) => {
       const userId = user?.id ?? null;
+      setCurrentUserId(userId);
       if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
         qc.clear();
       }
@@ -158,7 +160,7 @@ function ClerkProviderWithRoutes() {
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
-        <ClerkQueryClientCacheInvalidator />
+        <ClerkStateSync />
         <TooltipProvider>
           <div className="dark">
             <Router />
