@@ -21,20 +21,24 @@ export function setCurrentUserId(userId: string | null): void {
 
 function getStorageKey(gameId: string): string {
   const base = BASE_KEYS[gameId] ?? gameId;
-  return _currentUserId ? `${base}__${_currentUserId}` : base;
+  return `${base}__${_currentUserId}`;
 }
 
+const EMPTY: GameProgress = { completed: false, highScore: 0 };
+
 export function getProgress(gameId: string): GameProgress {
+  if (!_currentUserId) return { ...EMPTY };
   try {
     const raw = localStorage.getItem(getStorageKey(gameId));
-    if (!raw) return { completed: false, highScore: 0 };
+    if (!raw) return { ...EMPTY };
     return JSON.parse(raw) as GameProgress;
   } catch {
-    return { completed: false, highScore: 0 };
+    return { ...EMPTY };
   }
 }
 
-export function saveProgress(gameId: string, score: number, badge?: string) {
+export function saveProgress(gameId: string, score: number, badge?: string): void {
+  if (!_currentUserId) return;
   const existing = getProgress(gameId);
   const updated: GameProgress = {
     completed: true,
@@ -50,6 +54,12 @@ export function saveProgress(gameId: string, score: number, badge?: string) {
 }
 
 export function getAllProgress(): Record<string, GameProgress> {
+  if (!_currentUserId) {
+    return Object.keys(BASE_KEYS).reduce(
+      (acc, id) => ({ ...acc, [id]: { ...EMPTY } }),
+      {} as Record<string, GameProgress>
+    );
+  }
   return Object.keys(BASE_KEYS).reduce(
     (acc, id) => ({ ...acc, [id]: getProgress(id) }),
     {} as Record<string, GameProgress>

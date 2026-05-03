@@ -228,7 +228,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {games.map((game, index) => {
-            const gp = progress[game.id];
+            const gp = isSignedIn ? progress[game.id] : undefined;
             const completed = gp?.completed ?? false;
             const highScore = gp?.highScore ?? 0;
             const progressPct = Math.min(100, Math.round((highScore / game.maxScore) * 100));

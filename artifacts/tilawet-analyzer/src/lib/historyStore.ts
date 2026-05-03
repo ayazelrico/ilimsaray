@@ -14,10 +14,11 @@ export function setCurrentUserId(userId: string | null): void {
 }
 
 function getStorageKey(): string {
-  return _currentUserId ? `tilawet_history__${_currentUserId}` : "tilawet_history";
+  return `tilawet_history__${_currentUserId}`;
 }
 
 export function getHistory(): AnalysisEntry[] {
+  if (!_currentUserId) return [];
   try {
     const raw = localStorage.getItem(getStorageKey());
     if (!raw) return [];
@@ -28,6 +29,7 @@ export function getHistory(): AnalysisEntry[] {
 }
 
 export function saveToHistory(entry: Omit<AnalysisEntry, "id" | "date">): void {
+  if (!_currentUserId) return;
   const history = getHistory();
   const newEntry: AnalysisEntry = {
     id: Math.random().toString(36).slice(2),
