@@ -1,6 +1,78 @@
 import { useLocation } from "wouter";
+import { useUser, useClerk } from "@clerk/react";
 import { getAllProgress } from "@/lib/progress";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+function UserMenu() {
+  const { user, isSignedIn, isLoaded } = useUser();
+  const { signOut } = useClerk();
+  const [, navigate] = useLocation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  if (!isLoaded) return null;
+
+  if (!isSignedIn) {
+    return (
+      <button
+        onClick={() => navigate("/sign-in")}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#CCFF00]/30 bg-[#CCFF00]/10 text-[#CCFF00] text-xs font-semibold hover:bg-[#CCFF00]/20 transition-all"
+      >
+        Giriş Yap
+      </button>
+    );
+  }
+
+  const initials = user.firstName
+    ? `${user.firstName[0]}${user.lastName?.[0] ?? ""}`.toUpperCase()
+    : (user.emailAddresses[0]?.emailAddress?.[0] ?? "?").toUpperCase();
+
+  const displayName = user.firstName
+    ? `${user.firstName}${user.lastName ? " " + user.lastName : ""}`
+    : user.emailAddresses[0]?.emailAddress ?? "";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 px-2 py-1.5 rounded-full border border-border/60 hover:border-[#CCFF00]/30 bg-card hover:bg-[#CCFF00]/5 transition-all"
+      >
+        <div className="w-6 h-6 rounded-full bg-[#CCFF00] flex items-center justify-center text-black text-xs font-bold shrink-0 overflow-hidden">
+          {user.imageUrl ? (
+            <img src={user.imageUrl} alt={displayName} className="w-full h-full object-cover" />
+          ) : (
+            initials
+          )}
+        </div>
+        <span className="text-foreground text-xs font-medium max-w-[100px] truncate hidden sm:block">{displayName}</span>
+        <span className="text-muted-foreground text-xs">▾</span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-border/60 bg-card shadow-2xl z-50 overflow-hidden animate-fade-in">
+          <div className="px-3 py-2.5 border-b border-border/40">
+            <p className="text-foreground text-sm font-semibold truncate">{displayName}</p>
+            <p className="text-muted-foreground text-xs truncate">{user.emailAddresses[0]?.emailAddress}</p>
+          </div>
+          <button
+            onClick={() => { setOpen(false); signOut(); }}
+            className="w-full text-left px-3 py-2 text-muted-foreground text-sm hover:bg-[#CCFF00]/5 hover:text-foreground transition-colors"
+          >
+            🚪 Çıkış Yap
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const games = [
   {
@@ -97,9 +169,10 @@ export default function Home() {
                 🏆 {totalCompleted}/5 Oyun Tamamlandı
               </div>
             )}
-            <a href="/" className="text-xs text-muted-foreground hover:text-[#CCFF00] transition-colors">
+            <a href="/" className="hidden sm:block text-xs text-muted-foreground hover:text-[#CCFF00] transition-colors">
               Tilavet Analizör →
             </a>
+            <UserMenu />
           </div>
         </div>
       </header>

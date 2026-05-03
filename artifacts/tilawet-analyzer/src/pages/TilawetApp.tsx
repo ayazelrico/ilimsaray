@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Mic, Square, RefreshCw, ChevronRight } from "lucide-react";
+import { useUser, useClerk } from "@clerk/react";
+import { useLocation } from "wouter";
 import ilimsarayLogo from "@assets/ilimsaray_1775908969299.png";
 import { WaveformVisualizer } from "@/components/WaveformVisualizer";
 import { ScoreCircle } from "@/components/ScoreCircle";
@@ -7,6 +9,83 @@ import { ScoreCard } from "@/components/ScoreCard";
 import { ToastContainer, ToastMessage } from "@/components/Toast";
 import { useRecorder } from "@/hooks/useRecorder";
 import { transcribeAudio, analyzeRecitation, AnalysisResult } from "@/lib/openai";
+
+function UserMenu() {
+  const { user, isSignedIn, isLoaded } = useUser();
+  const { signOut } = useClerk();
+  const [, navigate] = useLocation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  if (!isLoaded) return null;
+
+  if (!isSignedIn) {
+    return (
+      <button
+        onClick={() => navigate("/sign-in")}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#CCFF00]/30 bg-[#CCFF00]/8 text-[#CCFF00] text-xs font-semibold hover:bg-[#CCFF00]/15 transition-all"
+      >
+        Giriş Yap
+      </button>
+    );
+  }
+
+  const initials = user.firstName
+    ? `${user.firstName[0]}${user.lastName?.[0] ?? ""}`.toUpperCase()
+    : (user.emailAddresses[0]?.emailAddress?.[0] ?? "?").toUpperCase();
+
+  const displayName = user.firstName
+    ? `${user.firstName}${user.lastName ? " " + user.lastName : ""}`
+    : user.emailAddresses[0]?.emailAddress ?? "";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 px-2 py-1.5 rounded-full border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/8 transition-all"
+      >
+        <div className="w-6 h-6 rounded-full bg-[#CCFF00] flex items-center justify-center text-black text-xs font-bold shrink-0">
+          {user.imageUrl ? (
+            <img src={user.imageUrl} alt={displayName} className="w-6 h-6 rounded-full object-cover" />
+          ) : (
+            initials
+          )}
+        </div>
+        <span className="text-white/80 text-xs font-medium max-w-[120px] truncate hidden sm:block">{displayName}</span>
+        <span className="text-white/30 text-xs">▾</span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-white/10 bg-[#111118] shadow-2xl z-50 overflow-hidden animate-fade-in">
+          <div className="px-3 py-2.5 border-b border-white/5">
+            <p className="text-white text-sm font-semibold truncate">{displayName}</p>
+            <p className="text-white/40 text-xs truncate">{user.emailAddresses[0]?.emailAddress}</p>
+          </div>
+          <button
+            onClick={() => { setOpen(false); navigate("/"); }}
+            className="w-full text-left px-3 py-2 text-white/70 text-sm hover:bg-white/5 hover:text-white transition-colors"
+          >
+            🏠 Ana Sayfa
+          </button>
+          <button
+            onClick={() => { setOpen(false); signOut(); }}
+            className="w-full text-left px-3 py-2 text-white/70 text-sm hover:bg-white/5 hover:text-white transition-colors"
+          >
+            🚪 Çıkış Yap
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 type AppState = "landing" | "recording" | "analyzing" | "results";
 
@@ -135,10 +214,13 @@ export function TilawetApp() {
           data-testid="link-ilimsaray-home">
           <img src={ilimsarayLogo} alt="ilimsaray" className="h-7 w-auto brightness-100 invert" />
         </a>
-        <span className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#CCFF00]/8 border border-[#CCFF00]/20 text-[#CCFF00] text-xs font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
-          AI Destekli
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#CCFF00]/8 border border-[#CCFF00]/20 text-[#CCFF00] text-xs font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
+            AI Destekli
+          </span>
+          <UserMenu />
+        </div>
       </header>
 
       <main className="relative z-10 flex flex-col items-center min-h-[calc(100vh-73px)]">

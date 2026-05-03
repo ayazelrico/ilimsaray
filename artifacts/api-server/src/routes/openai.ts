@@ -60,7 +60,7 @@ router.post("/transcribe", upload.single("file"), async (req: Request, res: Resp
   try {
     const formData = new FormData();
     const ext = req.file.mimetype.includes("mp4") ? "mp4" : req.file.mimetype.includes("ogg") ? "ogg" : "webm";
-    const blob = new Blob([req.file.buffer], { type: req.file.mimetype });
+    const blob = new Blob([new Uint8Array(req.file.buffer)], { type: req.file.mimetype });
     formData.append("file", blob, `recording.${ext}`);
     formData.append("model", "whisper-1");
     formData.append("language", "ar");
