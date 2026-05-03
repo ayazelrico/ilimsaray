@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/oyunlar/"
+title = "İslami Oyunlar"
+version = "1.0.0"
+id = "artifacts/oyunlar"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/oyunlar/" ]
+localPort = 18585
+
+[services.development]
+run = "pnpm --filter @workspace/oyunlar run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/oyunlar", "run", "build" ]
+publicDir = "artifacts/oyunlar/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18585"
+BASE_PATH = "/oyunlar/"

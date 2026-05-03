@@ -55,5 +55,30 @@ See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and pa
 - Standard Express API server at `/api`
 - Currently only has health check endpoint
 
+### İslami Oyunlar (`artifacts/oyunlar`)
+- **Path**: `/oyunlar/`
+- **Kind**: react-vite web app
+- **Purpose**: 5 educational Islamic games for ilimsaray.com students
+- **Features**:
+  - **Kuran Kaşifi** — 5-level ayah quiz; localStorage progress; badges
+  - **Tecvid Ustası** — 3-difficulty tajweed quiz; per-question explanations; % score
+  - **Harflerin Yolculuğu** — Arabic alphabet in 3 modes: flashcard, sort, match
+  - **Tilavet Yarışması** — Verse word-ordering vs 30s timer; localStorage leaderboard
+  - **İslami Bilgi Yolculuğu** — 5-chapter branching story with Quran references
+  - Dark theme with #CCFF00 accent, full Turkish UI, mobile responsive
+  - All progress stored in localStorage (no backend required)
+- **Key Files**:
+  - `src/pages/Home.tsx` — game hub with 5 cards
+  - `src/pages/KuranKasifi.tsx` — adventure quiz game
+  - `src/pages/TecvidUstasi.tsx` — tajweed difficulty quiz
+  - `src/pages/HarflerinYolculugu.tsx` — Arabic letters puzzle
+  - `src/pages/TilavetYarismasi.tsx` — verse ordering competition
+  - `src/pages/BilgiYolculugu.tsx` — Islamic story game
+
+### API Server (`artifacts/api-server`)
+- Express 5 server at `/api`
+- OpenAI proxy routes: `/api/transcribe` (Whisper) and `/api/analyze` (GPT-4o)
+- Uses `OPENAI_API_KEY` secret server-side
+
 ### Canvas/Mockup Sandbox (`artifacts/mockup-sandbox`)
 - Design mockup sandbox at `/__mockup`
