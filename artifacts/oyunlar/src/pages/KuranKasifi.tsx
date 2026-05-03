@@ -109,8 +109,7 @@ export default function KuranKasifi() {
       setQuestionIndex(0);
       setCorrectCount(0);
     } else {
-      const finalScore = score + correctCount * 100;
-      saveProgress("kuran-kasifi", finalScore, "🏆 Kuran Kaşifi");
+      saveProgress("kuran-kasifi", score, "🏆 Kuran Kaşifi");
       setPhase("complete");
     }
   }
