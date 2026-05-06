@@ -256,10 +256,6 @@ export function TilawetApp() {
           <img src={ilimsarayLogo} alt="ilimsaray" className="h-7 w-auto brightness-100 invert" />
         </a>
         <div className="flex items-center gap-3">
-          <span className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#CCFF00]/8 border border-[#CCFF00]/20 text-[#CCFF00] text-xs font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
-            AI Destekli
-          </span>
           {isLoaded && isSignedIn && (
             <button
               onClick={handleOpenHistory}
