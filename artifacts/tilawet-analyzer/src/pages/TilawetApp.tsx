@@ -412,6 +412,110 @@ function LandingSection({ onStart }: { onStart: () => void }) {
           </div>
         ))}
       </div>
+
+      <div className="w-full max-w-2xl mt-24 space-y-16 pb-24">
+        <section>
+          <div className="text-center mb-8">
+            <span className="text-xs font-semibold tracking-[0.25em] text-[#CCFF00]/50 uppercase">Nasıl Çalışır?</span>
+            <h2 className="text-2xl font-bold text-white mt-2">Üç Adımda Analiz</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              {
+                step: "01",
+                icon: "🎙️",
+                title: "Tilavetinizi Kaydedin",
+                desc: "Kayıt butonuna basın ve seçtiğiniz ayet veya sureyi okuyun. Maksimum 3 dakika kayıt yapabilirsiniz.",
+              },
+              {
+                step: "02",
+                icon: "🤖",
+                title: "Yapay Zeka Analiz Eder",
+                desc: "Whisper AI sesinizi metne dönüştürür, ardından GPT-4o tilavetinizi 5 ayrı kriter üzerinden değerlendirir.",
+              },
+              {
+                step: "03",
+                icon: "📊",
+                title: "Raporunuzu İnceleyin",
+                desc: "100 puan üzerinden detaylı skorunuzu, kriter bazlı geri bildirimlerinizi ve genel yorumunuzu görüntüleyin.",
+              },
+            ].map((item) => (
+              <div key={item.step} className="glass-card rounded-2xl p-5 text-left relative overflow-hidden">
+                <span className="absolute top-4 right-4 text-4xl font-black text-white/5 select-none leading-none">{item.step}</span>
+                <span className="text-2xl mb-3 block">{item.icon}</span>
+                <h3 className="text-white font-semibold text-sm mb-2">{item.title}</h3>
+                <p className="text-white/40 text-xs leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <div className="text-center mb-8">
+            <span className="text-xs font-semibold tracking-[0.25em] text-[#CCFF00]/50 uppercase">Değerlendirme</span>
+            <h2 className="text-2xl font-bold text-white mt-2">5 Temel Kriter</h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              { icon: "📖", label: "Taban Puan", max: 50, desc: "Ayetin doğru ve eksiksiz okunması; kelimelerin tam ve sıralı aktarımı." },
+              { icon: "🔤", label: "Tecvid ve Mahreç", max: 15, desc: "Harflerin çıkış noktaları, uzatma (med), şedde, idğam ve ihfa kurallarına uyum." },
+              { icon: "👁", label: "Yüzünden Doğru Okuma", max: 15, desc: "Metinden okuma akıcılığı; kelime atlamama ve ekleme yapmama." },
+              { icon: "🎵", label: "Makam", max: 15, desc: "Ses tonunun ve melodisinin Kuran tilavetine uygunluğu ile ahenkli aktarım." },
+              { icon: "🔊", label: "Ses", max: 5, desc: "Kayıt kalitesi, netlik ve anlaşılırlık açısından genel ses değerlendirmesi." },
+            ].map((c) => (
+              <div key={c.label} className="glass-card rounded-xl px-5 py-4 flex items-center gap-4">
+                <span className="text-xl shrink-0">{c.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-white text-sm font-medium">{c.label}</span>
+                    <span className="text-[#CCFF00] text-xs font-bold shrink-0 ml-3">{c.max} puan</span>
+                  </div>
+                  <p className="text-white/40 text-xs leading-relaxed">{c.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <div className="text-center mb-8">
+            <span className="text-xs font-semibold tracking-[0.25em] text-[#CCFF00]/50 uppercase">Neden Tilawet Analizör?</span>
+            <h2 className="text-2xl font-bold text-white mt-2">Özellikler</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              {
+                icon: "⚡",
+                title: "Anında Geri Bildirim",
+                desc: "Kaydın biter bitmez saniyeler içinde detaylı analiz raporunuza ulaşın. Beklemek yok.",
+              },
+              {
+                icon: "🎯",
+                title: "Kişiselleştirilmiş Yorum",
+                desc: "GPT-4o her tilaveti ayrı değerlendirir; güçlü yönlerinizi ve geliştirmeniz gereken alanları özellikle vurgular.",
+              },
+              {
+                icon: "📱",
+                title: "Her Cihazda Çalışır",
+                desc: "Telefon, tablet veya bilgisayardan kayıt yapın. Tarayıcı tabanlı çalışır; uygulama indirmenize gerek yok.",
+              },
+              {
+                icon: "🔒",
+                title: "Gizliliğiniz Güvende",
+                desc: "Ses kayıtlarınız yalnızca analiz için kullanılır ve saklanmaz. Hesap açarak analizlerinizi takip edebilirsiniz.",
+              },
+            ].map((f) => (
+              <div key={f.title} className="glass-card rounded-2xl p-5 text-left">
+                <div className="w-9 h-9 rounded-xl bg-[#CCFF00]/10 border border-[#CCFF00]/20 flex items-center justify-center text-lg mb-3">
+                  {f.icon}
+                </div>
+                <h3 className="text-white font-semibold text-sm mb-1.5">{f.title}</h3>
+                <p className="text-white/40 text-xs leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
