@@ -4,6 +4,7 @@ import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { Switch, Route, useLocation, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TilawetApp } from "@/pages/TilawetApp";
@@ -120,16 +121,14 @@ function ClerkStateSync() {
 
 function GamesSection() {
   return (
-    <WouterRouter base="/oyunlar">
-      <Switch>
-        <Route path="/" component={GamesHome} />
-        <Route path="/kuran-kasifi" component={KuranKasifi} />
-        <Route path="/tecvid-ustasi" component={TecvidUstasi} />
-        <Route path="/harflerin-yolculugu" component={HarflerinYolculugu} />
-        <Route path="/tilavet-yarismasi" component={TilavetYarismasi} />
-        <Route path="/bilgi-yolculugu" component={BilgiYolculugu} />
-      </Switch>
-    </WouterRouter>
+    <Switch>
+      <Route path="/" component={GamesHome} />
+      <Route path="/kuran-kasifi" component={KuranKasifi} />
+      <Route path="/tecvid-ustasi" component={TecvidUstasi} />
+      <Route path="/harflerin-yolculugu" component={HarflerinYolculugu} />
+      <Route path="/tilavet-yarismasi" component={TilavetYarismasi} />
+      <Route path="/bilgi-yolculugu" component={BilgiYolculugu} />
+    </Switch>
   );
 }
 
@@ -167,7 +166,7 @@ function ClerkProviderWithRoutes() {
             <Switch>
               <Route path="/sign-in/*?" component={SignInPage} />
               <Route path="/sign-up/*?" component={SignUpPage} />
-              <Route path="/oyunlar/:rest*" component={GamesSection} />
+              <Route path="/oyunlar" nest component={GamesSection} />
               <Route component={TilawetApp} />
             </Switch>
             <Toaster />
