@@ -11,7 +11,7 @@ version = "1.0.0"
 
 [[services]]
 name = "web"
-paths = [ "/oyunlar/" ]
+paths = []
 localPort = 18585
 
 [services.development]

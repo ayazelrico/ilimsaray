@@ -8,6 +8,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TilawetApp } from "@/pages/TilawetApp";
 import { setCurrentUserId } from "@/lib/historyStore";
+import { setCurrentUserId as setProgressUserId } from "@/lib/progress";
+import GamesHome from "@/pages/games/Home";
+import KuranKasifi from "@/pages/games/KuranKasifi";
+import TecvidUstasi from "@/pages/games/TecvidUstasi";
+import HarflerinYolculugu from "@/pages/games/HarflerinYolculugu";
+import TilavetYarismasi from "@/pages/games/TilavetYarismasi";
+import BilgiYolculugu from "@/pages/games/BilgiYolculugu";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +106,7 @@ function ClerkStateSync() {
     const unsubscribe = addListener(({ user }) => {
       const userId = user?.id ?? null;
       setCurrentUserId(userId);
+      setProgressUserId(userId);
       if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
         qc.clear();
       }
@@ -108,6 +116,21 @@ function ClerkStateSync() {
   }, [addListener, qc]);
 
   return null;
+}
+
+function GamesSection() {
+  return (
+    <WouterRouter base="/oyunlar">
+      <Switch>
+        <Route path="/" component={GamesHome} />
+        <Route path="/kuran-kasifi" component={KuranKasifi} />
+        <Route path="/tecvid-ustasi" component={TecvidUstasi} />
+        <Route path="/harflerin-yolculugu" component={HarflerinYolculugu} />
+        <Route path="/tilavet-yarismasi" component={TilavetYarismasi} />
+        <Route path="/bilgi-yolculugu" component={BilgiYolculugu} />
+      </Switch>
+    </WouterRouter>
+  );
 }
 
 function ClerkProviderWithRoutes() {
@@ -144,6 +167,7 @@ function ClerkProviderWithRoutes() {
             <Switch>
               <Route path="/sign-in/*?" component={SignInPage} />
               <Route path="/sign-up/*?" component={SignUpPage} />
+              <Route path="/oyunlar/:rest*" component={GamesSection} />
               <Route component={TilawetApp} />
             </Switch>
             <Toaster />
